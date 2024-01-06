@@ -1,4 +1,5 @@
 import Vapor
+import Leaf
 
 struct User: Content {
     var name: String
@@ -20,19 +21,24 @@ struct Product: Content {
     var sale:            Decimal
 }
 
+struct WelcomeContext: Encodable {
+    var title: String
+    var name: String
+}
+
 func routes(_ app: Application) throws {
-    app.get { req async in
-        "It works!"
-    }
+    
+    try app.register(collection: ViewsController())
+  
     
     app.group("hello") {hello in
         hello.get { req in
             return "Hello, world!"
         }
         
-        hello.get(":name") {req in
+        hello.get(":name") {req async throws -> View in
             let name = req.parameters.get("name")!
-            return "Hello, \(name)!"
+            return try await req.view.render("hello", WelcomeContext(title:"Hey, welcome", name: name))
         }
     }
     
